@@ -35,15 +35,15 @@ def common_ksampler(model, seed, steps, cfg, sampler_name, scheduler, positive, 
 @ComfyNode(category="Sampling", display_name="KSampler", description="Denoises a latent image using a provided model and conditioning", color="#44AA88")
 def ksampler(
     model: ModelTensor,
-    seed: int = NumberInput(0, 0, 0xffffffffffffffff, display="slider", step=1, tooltip="Random seed used for noise generation."),
-    steps: int = NumberInput(20, 1, 10000, display="slider", step=1, tooltip="Number of denoising steps."),
-    cfg: float = NumberInput(8.0, 0.0, 100.0, step=0.1, tooltip="Classifier-Free Guidance scale for controlling creativity."),
+    seed: int = NumberInput(0, 0, 0xffffffffffffffff, display="slider", step=1),
+    steps: int = NumberInput(20, 1, 10000, display="slider", step=1,
+    cfg: float = NumberInput(8.0, 0.0, 100.0, step=0.1),
     sampler_name: str = comfy.samplers.KSampler.SAMPLERS,
     scheduler: str = comfy.samplers.KSampler.SCHEDULERS,
     positive: ConditioningTensor = None,  # Default value provided
     negative: ConditioningTensor = None,  # Default value provided
     latent_image: LatentTensor = None,    # Default value provided
-    denoise: float = NumberInput(1.0, 0.0, 1.0, step=0.01, tooltip="Degree of denoising to apply. Lower values preserve more initial image structure.")
+    denoise: float = NumberInput(1.0, 0.0, 1.0, step=0.01)
 ) -> LatentTensor:
     """
     Uses the provided model, positive and negative conditioning to denoise the latent image.
