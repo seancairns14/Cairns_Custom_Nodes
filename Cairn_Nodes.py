@@ -1,5 +1,5 @@
 import torch
-from easy_nodes import ComfyNode, NumberInput, ModelTensor, ConditioningTensor, LatentTensor
+from easy_nodes import ComfyNode, NumberInput, ModelTensor, ConditioningTensor, LatentTensor, ImageTensor
 import comfy.sample
 import comfy.utils
 import latent_preview
@@ -31,23 +31,9 @@ def common_ksampler(model, seed, steps, cfg, sampler_name, scheduler, positive, 
     out["samples"] = samples
     return (out, )
 
-# Define the node using @ComfyNode decorator
-@ComfyNode(category="Sampling", display_name="KSamplerCairns", description="Denoises a latent image using a provided model and conditioning", color="#44AA88")
-def ksampler(
-    model: ModelTensor,
-    seed: int = NumberInput(0, 0, 0xffffffffffffffff, display="slider", step=1),
-    steps: int = NumberInput(20, 1, 10000, display="slider", step=1),
-    cfg: float = NumberInput(8.0, 0.0, 100.0, step=0.1),
-    sampler_name: str = comfy.samplers.KSampler.SAMPLERS,
-    scheduler: str = comfy.samplers.KSampler.SCHEDULERS,
-    positive: ConditioningTensor = None,  # Default value provided
-    negative: ConditioningTensor = None,  # Default value provided
-    latent_image: LatentTensor = None,    # Default value provided
-    denoise: float = NumberInput(1.0, 0.0, 1.0, step=0.01)
-) -> LatentTensor:
-    """
-    Uses the provided model, positive and negative conditioning to denoise the latent image.
-    """
-    return common_ksampler(
-        model, seed, steps, cfg, sampler_name, scheduler, positive, negative, latent_image, denoise=denoise
-    )
+
+@ComfyNode()
+def create_random_image(width: int=NumberInput(128, 128, 1024), 
+                        height: int=NumberInput(128, 128, 1024)) -> ImageTensor:
+    return torch.rand((1, height, width, 3))
+
