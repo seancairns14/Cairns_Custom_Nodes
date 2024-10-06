@@ -2,7 +2,7 @@ import easy_nodes
 easy_nodes.initialize_easy_nodes(default_category="my_category", auto_register=False)
 
 # This must come after calling initialize_easy_nodes.
-import Cairn_Nodes  # noqa: E402
+from  .Cairn_Nodes  import * # noqa: E402
 
 NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS = easy_nodes.get_node_mappings()
 
