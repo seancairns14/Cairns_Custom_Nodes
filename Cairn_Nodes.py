@@ -1,6 +1,17 @@
+import logging
+from random import random
+from easy_nodes import (
+    NumberInput,
+    ComfyNode,
+    MaskTensor,
+    StringInput,
+    ImageTensor,
+    Choice,
+)
+import easy_nodes
 import torch
-import comfy.samplers
 import comfy.sample
+import comfy.utils
 import latent_preview
 
 def common_ksampler(model, seed, steps, cfg, sampler_name, scheduler, positive, negative, latent, denoise=1.0, disable_noise=False, start_step=None, last_step=None, force_full_denoise=False):
@@ -27,49 +38,30 @@ def common_ksampler(model, seed, steps, cfg, sampler_name, scheduler, positive, 
     return (out, )
 
 
+@ComfyNode(category="Image Processing",
+           display_name="K-Sample Image with Latent",
+           description="Uses common_ksampler to sample images from latent space.",
+           color="#336699")
+def k_sample_with_latent(model, seed: int, steps: int = 50, cfg: float = 7.5, 
+                         sampler_name: str = "ddim", scheduler: str = "default",
+                         positive: list = [], negative: list = [], latent: dict = {},
+                         denoise: float = 1.0, disable_noise: bool = False) -> ImageTensor:
+    """
+    This node applies K-sampling to a latent image tensor using common_ksampler.
+    """
+    
+    # Use the provided function to perform the latent space sampling
+    result_latent = common_ksampler(model, seed, steps, cfg, sampler_name, scheduler, 
+                                    positive, negative, latent, denoise, disable_noise)
+    
+    # Extract the generated latent image from the output
+    latent_image = result_latent[0]["samples"]
+    
+    # Convert latent space back into image tensor
+    output_image = model.decode(latent_image)
+    
+    # Show the resulting image
+    easy_nodes.show_image(output_image)
+    
+    return output_image
 
-
-class KSamplerAdvancedCairn:
-    @classmethod
-    def INPUT_TYPES(s):
-        return {"required":
-                    {"model": ("MODEL",),
-                    "add_noise": (["enable", "disable"], ),
-                    "noise_seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
-                    "steps": ("INT", {"default": 20, "min": 1, "max": 10000}),
-                    "cfg": ("FLOAT", {"default": 8.0, "min": 0.0, "max": 100.0, "step":0.1, "round": 0.01}),
-                    "sampler_name": (comfy.samplers.KSampler.SAMPLERS, ),
-                    "scheduler": (comfy.samplers.KSampler.SCHEDULERS, ),
-                    "positive": ("CONDITIONING", ),
-                    "negative": ("CONDITIONING", ),
-                    "latent_image": ("LATENT", ),
-                    "start_at_step": ("INT", {"default": 0, "min": 0, "max": 10000}),
-                    "end_at_step": ("INT", {"default": 10000, "min": 0, "max": 10000}),
-                    "return_with_leftover_noise": (["disable", "enable"], ),
-                     }
-                }
-
-    RETURN_TYPES = ("LATENT",)
-    FUNCTION = "sample"
-
-    CATEGORY = "sampling"
-
-    def sample(self, model, add_noise, noise_seed, steps, cfg, sampler_name, scheduler, positive, negative, latent_image, start_at_step, end_at_step, return_with_leftover_noise, denoise=1.0):
-        force_full_denoise = True
-        if return_with_leftover_noise == "enable":
-            force_full_denoise = False
-        disable_noise = False
-        if add_noise == "disable":
-            disable_noise = True
-        return common_ksampler(model, noise_seed, steps, cfg, sampler_name, scheduler, positive, negative, latent_image, denoise=denoise, disable_noise=disable_noise, start_step=start_at_step, last_step=end_at_step, force_full_denoise=force_full_denoise)
-
-
-
-NODE_CLASS_MAPPINGS = {
-    "MyNode": KSamplerAdvancedCairn
-}
- 
-# A dictionary that contains the friendly/humanly readable titles for the nodes
-NODE_DISPLAY_NAME_MAPPINGS = {
-    "FirstNode": "My First Node"
-}
