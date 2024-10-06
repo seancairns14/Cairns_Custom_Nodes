@@ -1,4 +1,5 @@
 import easy_nodes
+import os
 easy_nodes.initialize_easy_nodes(default_category="my_category", auto_register=False)
 
 # This must come after calling initialize_easy_nodes.
