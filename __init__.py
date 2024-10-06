@@ -6,8 +6,6 @@ easy_nodes.initialize_easy_nodes(default_category="Cairns_Nodes", auto_register=
 from  .Cairn_Nodes  import * # noqa: E402
 
 NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS = easy_nodes.get_node_mappings()
-
-NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS = easy_nodes.get_node_mappings()
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS"]
 
 
