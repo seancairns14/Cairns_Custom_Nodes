@@ -36,7 +36,7 @@ def common_ksampler(model, seed, steps, cfg, sampler_name, scheduler, positive, 
 def ksampler(
     model: ModelTensor,
     seed: int = NumberInput(0, 0, 0xffffffffffffffff, display="slider", step=1),
-    steps: int = NumberInput(20, 1, 10000, display="slider", step=1,
+    steps: int = NumberInput(20, 1, 10000, display="slider", step=1),
     cfg: float = NumberInput(8.0, 0.0, 100.0, step=0.1),
     sampler_name: str = comfy.samplers.KSampler.SAMPLERS,
     scheduler: str = comfy.samplers.KSampler.SCHEDULERS,
