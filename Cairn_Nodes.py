@@ -32,8 +32,8 @@ def common_ksampler(model, seed, steps, cfg, sampler_name, scheduler, positive, 
     return (out, )
 
 # Define the node using @ComfyNode decorator
-@ComfyNode(category="Sampling", display_name="KSampler", description="Denoises a latent image using a provided model and conditioning", color="#44AA88")
-def ksamplerCairns(
+@ComfyNode(category="Sampling", display_name="KSamplerCairns", description="Denoises a latent image using a provided model and conditioning", color="#44AA88")
+def ksampler(
     model: ModelTensor,
     seed: int = NumberInput(0, 0, 0xffffffffffffffff, display="slider", step=1),
     steps: int = NumberInput(20, 1, 10000, display="slider", step=1),
