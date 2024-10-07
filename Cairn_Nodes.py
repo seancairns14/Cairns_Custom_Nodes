@@ -36,7 +36,8 @@ def common_ksampler(model, seed, steps, cfg, sampler_name, scheduler, positive, 
 def create_random_image(width: int=NumberInput(128, 128, 1024), 
                         height: int=NumberInput(128, 128, 1024),
                         model: ModelTensor=None, 
-                        seed: int = NumberInput(0, 0, 0xffffffffffffffff, display="slider", step=1)) -> ImageTensor:
+                        seed: int = NumberInput(0, 0, 0xffffffffffffffff, step=1),
+                        steps: int = NumberInput(20, 1, 10000, display="slider", step=1)) -> ImageTensor:
     
     return torch.rand((1, height, width, 3))
 
