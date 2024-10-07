@@ -48,15 +48,12 @@ def Cairns_ksample(model: ModelTensor=None,
     # Set default values for ConditioningTensors and LatentTensor if they are None
     if latent_image is None:
         latent_image = comfy.sample.create_random_latent(model.width, model.height, seed)
-
+        
     if positive is None:
         positive = ConditioningTensor.default_positive()
 
     if negative is None:
         negative = ConditioningTensor.default_negative()
-
-    # Prepare the latent dictionary for common_ksampler
-    latent_dict = {"samples": latent_image}
 
     # Call the common ksampler function
     output_latent = common_ksampler(
@@ -68,7 +65,7 @@ def Cairns_ksample(model: ModelTensor=None,
         scheduler=scheduler_name,
         positive=positive,
         negative=negative,
-        latent=latent_dict,
+        latent=latent_image,
         denoise=denoise
     )
 
