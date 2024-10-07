@@ -33,21 +33,46 @@ def common_ksampler(model, seed, steps, cfg, sampler_name, scheduler, positive, 
 
 
 @ComfyNode()
-def create_random_image(width: int=NumberInput(128, 128, 1024), 
-                        height: int=NumberInput(128, 128, 1024),
-                        model: ModelTensor=None, 
-                        seed: int = NumberInput(0, 0, 0xffffffffffffffff, step=1),
-                        steps: int = NumberInput(20, 1, 10000, step=1),
-                        cfg: float = NumberInput(8.0, 0.0, 100.0, step=0.1),
-                        sampler_name: str = Choice(comfy.samplers.KSampler.SAMPLERS),
-                        scheduler_name: str = Choice(comfy.samplers.KSampler.SCHEDULERS),
-                        positive: ConditioningTensor = None,  # Default value provided
-                        negative: ConditioningTensor = None,  # Default value provided
-                        latent_image: LatentTensor = None,    # Default value provided
-                        denoise: float = NumberInput(1.0, 0.0, 1.0, step=0.01)
-                        ) -> ImageTensor:
-    
-    return torch.rand((1, height, width, 3))
+def Cairns_ksample(model: ModelTensor=None, 
+                   seed: int = NumberInput(0, 0, 0xffffffffffffffff, step=1),
+                   steps: int = NumberInput(20, 1, 10000, step=1),
+                   cfg: float = NumberInput(8.0, 0.0, 100.0, step=0.1),
+                   sampler_name: str = Choice(comfy.samplers.KSampler.SAMPLERS, comfy.samplers.KSampler.SAMPLERS[0]),
+                   scheduler_name: str = Choice(comfy.samplers.KSampler.SCHEDULERS, comfy.samplers.KSampler.SCHEDULERS[0]),
+                   positive: ConditioningTensor = None,  
+                   negative: ConditioningTensor = None,  
+                   latent_image: LatentTensor = None,    
+                   denoise: float = NumberInput(1.0, 0.0, 1.0, step=0.01)
+                   ) -> ImageTensor:
 
+    # Set default values for ConditioningTensors and LatentTensor if they are None
+    if latent_image is None:
+        latent_image = comfy.sample.create_random_latent(model.width, model.height, seed)
 
+    if positive is None:
+        positive = ConditioningTensor.default_positive()
 
+    if negative is None:
+        negative = ConditioningTensor.default_negative()
+
+    # Prepare the latent dictionary for common_ksampler
+    latent_dict = {"samples": latent_image}
+
+    # Call the common ksampler function
+    output_latent = common_ksampler(
+        model=model,
+        seed=seed,
+        steps=steps,
+        cfg=cfg,
+        sampler_name=sampler_name,
+        scheduler=scheduler_name,
+        positive=positive,
+        negative=negative,
+        latent=latent_dict,
+        denoise=denoise
+    )
+
+    # Convert the latent to an ImageTensor (depending on your implementation of conversion)
+    output_image = comfy.utils.latent_to_image(output_latent[0]["samples"])
+
+    return output_image
