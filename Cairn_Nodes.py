@@ -71,3 +71,71 @@ def Cairns_ksample(model: ModelTensor=None,
 
 
     return output_latent
+
+
+class RepeatPipe:
+    def __init__(self, model, pos, neg, latent, vae) -> None:
+        self.model = model 
+        self.pos = pos
+        self.neg = neg 
+        self.latent = latent
+        self.vae = vae
+
+
+
+
+@ComfyNode()
+def repeat_ksample(repeat_pipe: RepeatPipe = None,
+                   seed: int = NumberInput(0, 0, 0xffffffffffffffff, step=1),
+                   steps: int = NumberInput(20, 1, 10000, step=1),
+                   cfg: float = NumberInput(8.0, 0.0, 100.0, step=0.1),
+                   sampler_name: str = Choice(comfy.samplers.KSampler.SAMPLERS),
+                   scheduler_name: str = Choice(comfy.samplers.KSampler.SCHEDULERS),   
+                   denoise: float = NumberInput(1.0, 0.0, 1.0, step=0.01)
+                   ) -> LatentTensor:
+
+    model = repeat_pipe.model
+    positive = repeat_pipe.pos
+    negative = repeat_pipe.neg
+    latent_image = repeat_pipe.latent
+
+    # Set default values for ConditioningTensors and LatentTensor if they are None
+    if latent_image is None:
+        latent_image = comfy.sample.create_random_latent(model.width, model.height, seed)
+        
+    if positive is None:
+        positive = ConditioningTensor.default_positive()
+
+    if negative is None:
+        negative = ConditioningTensor.default_negative()
+
+    # Call the common ksampler function
+    output_latent = common_ksampler(
+        model=model,
+        seed=seed,
+        steps=steps,
+        cfg=cfg,
+        sampler_name=sampler_name,
+        scheduler=scheduler_name,
+        positive=positive,
+        negative=negative,
+        latent=latent_image,
+        denoise=denoise
+    )
+
+
+    return output_latent
+
+
+@ComfyNode()
+def repeat_pipe_in(model: ModelTensor, 
+                   pos: ConditioningTensor, 
+                   neg: ConditioningTensor, 
+                   latent: LatentTensor, 
+                   vae: torch.Tensor) -> 'RepeatPipe':
+    return RepeatPipe(model=model, pos=pos, neg=neg, latent=latent, vae=vae)
+
+
+@ComfyNode()
+def repeat_pipe_out(repeat_pipe: 'RepeatPipe') -> tuple[ModelTensor, ConditioningTensor, ConditioningTensor, LatentTensor, torch.Tensor]:
+    return repeat_pipe.model, repeat_pipe.pos, repeat_pipe.neg, repeat_pipe.latent, repeat_pipe.vae
