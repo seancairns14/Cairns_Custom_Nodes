@@ -1,5 +1,5 @@
 import torch
-from easy_nodes import ComfyNode, NumberInput, ModelTensor, ConditioningTensor, LatentTensor, ImageTensor, type
+from easy_nodes import ComfyNode, NumberInput, ModelTensor, ConditioningTensor, LatentTensor, ImageTensor, Choice
 import comfy.samplers
 import comfy.utils
 import latent_preview
@@ -39,7 +39,7 @@ def create_random_image(width: int=NumberInput(128, 128, 1024),
                         seed: int = NumberInput(0, 0, 0xffffffffffffffff, step=1),
                         steps: int = NumberInput(20, 1, 10000, step=1),
                         cfg: float = NumberInput(8.0, 0.0, 100.0, step=0.1),
-                        sampler_name: str = comfy.samplers.KSampler.SAMPLERS[0],
+                        sampler_name: str = Choice(comfy.samplers.KSampler.SAMPLERS, comfy.samplers.KSampler.SAMPLERS[0]),
                         #scheduler: str = comfy.samplers.KSampler.SCHEDULERS,
                         #positive: ConditioningTensor = None,  # Default value provided
                         #negative: ConditioningTensor = None,  # Default value provided
