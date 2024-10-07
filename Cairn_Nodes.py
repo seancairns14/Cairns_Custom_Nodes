@@ -40,11 +40,11 @@ def create_random_image(width: int=NumberInput(128, 128, 1024),
                         steps: int = NumberInput(20, 1, 10000, step=1),
                         cfg: float = NumberInput(8.0, 0.0, 100.0, step=0.1),
                         sampler_name: str = Choice(comfy.samplers.KSampler.SAMPLERS),
-                        #scheduler: str = comfy.samplers.KSampler.SCHEDULERS,
-                        #positive: ConditioningTensor = None,  # Default value provided
-                        #negative: ConditioningTensor = None,  # Default value provided
-                        #latent_image: LatentTensor = None,    # Default value provided
-                        #denoise: float = NumberInput(1.0, 0.0, 1.0, step=0.01)
+                        scheduler_name: str = Choice(comfy.samplers.KSampler.SCHEDULERS),
+                        positive: ConditioningTensor = None,  # Default value provided
+                        negative: ConditioningTensor = None,  # Default value provided
+                        latent_image: LatentTensor = None,    # Default value provided
+                        denoise: float = NumberInput(1.0, 0.0, 1.0, step=0.01)
                         ) -> ImageTensor:
     
     return torch.rand((1, height, width, 3))
