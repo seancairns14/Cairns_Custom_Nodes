@@ -132,10 +132,10 @@ def repeat_pipe_in(model: ModelTensor,
                    pos: ConditioningTensor, 
                    neg: ConditioningTensor, 
                    latent: LatentTensor, 
-                   vae: torch.Tensor) -> 'RepeatPipe':
+                   vae: torch.Tensor) -> RepeatPipe:
     return RepeatPipe(model=model, pos=pos, neg=neg, latent=latent, vae=vae)
 
 
 @ComfyNode()
-def repeat_pipe_out(repeat_pipe: 'RepeatPipe') -> tuple[ModelTensor, ConditioningTensor, ConditioningTensor, LatentTensor, torch.Tensor]:
+def repeat_pipe_out(repeat_pipe: RepeatPipe) -> tuple[ModelTensor, ConditioningTensor, ConditioningTensor, LatentTensor, torch.Tensor]:
     return repeat_pipe.model, repeat_pipe.pos, repeat_pipe.neg, repeat_pipe.latent, repeat_pipe.vae
