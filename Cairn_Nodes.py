@@ -43,7 +43,7 @@ def Cairns_ksample(model: ModelTensor=None,
                    negative: ConditioningTensor = None,  
                    latent_image: LatentTensor = None,    
                    denoise: float = NumberInput(1.0, 0.0, 1.0, step=0.01)
-                   ) -> ImageTensor:
+                   ) -> LatentTensor:
 
     # Set default values for ConditioningTensors and LatentTensor if they are None
     if latent_image is None:
@@ -69,7 +69,5 @@ def Cairns_ksample(model: ModelTensor=None,
         denoise=denoise
     )
 
-    # Convert the latent to an ImageTensor (depending on your implementation of conversion)
-    output_image = comfy.utils.latent_to_image(output_latent[0]["samples"])
 
-    return output_image
+    return output_latent
