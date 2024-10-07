@@ -44,7 +44,7 @@ def create_random_image(width: int=NumberInput(128, 128, 1024),
                         positive: ConditioningTensor = None,  # Default value provided
                         negative: ConditioningTensor = None,  # Default value provided
                         latent_image: LatentTensor = None,    # Default value provided
-                        denoise: float = NumberInput(1.0, 0.0, 1.0, step=0.01) -> ImageTensor:
+                        denoise: float = NumberInput(1.0, 0.0, 1.0, step=0.01)) -> ImageTensor:
     
     return torch.rand((1, height, width, 3))
 
