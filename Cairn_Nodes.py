@@ -90,8 +90,8 @@ class RepeatPipe:
         self.neg = neg
         self.latent = latent
         self.vae = vae
-easy_nodes.register_type(MyPipeline, "PIPELINE")
-easy_nodes.create_field_setter_node(MyPipeline)
+easy_nodes.register_type(RepeatPipe, "PIPELINE")
+easy_nodes.create_field_setter_node(RepeatPipe)
 
 
 @ComfyNode()
