@@ -1,5 +1,14 @@
 import torch
-from easy_nodes import ComfyNode, NumberInput, ModelTensor, ConditioningTensor, LatentTensor, ImageTensor, Choice
+from easy_nodes import (
+    NumberInput,
+    ComfyNode,
+    MaskTensor,
+    StringInput,
+    ImageTensor,
+    Choice,
+    LatentTensor
+)
+import easy_nodes
 import comfy.samplers
 import comfy.utils
 import latent_preview
@@ -72,16 +81,15 @@ def Cairns_ksample(model: ModelTensor=None,
 
     return output_latent
 
-
 class RepeatPipe:
     def __init__(self, model, pos, neg, latent, vae) -> None:
-        self.model = model 
+        self.model = model
         self.pos = pos
-        self.neg = neg 
+        self.neg = neg
         self.latent = latent
         self.vae = vae
-
-
+easy_nodes.register_type(MyPipeline, "PIPELINE")
+easy_nodes.create_field_setter_node(MyPipeline)
 
 
 @ComfyNode()
