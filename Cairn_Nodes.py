@@ -111,8 +111,9 @@ def RepeatPipe_IN(model: ModelTensor=None, pos: ConditioningTensor=None, neg: Co
     pipe.prompt = prompt
 
     pipe = [pipe]
-    if type(pipe) != list(RepeatPipe):
-        raise ValueError(f"RepeatPipe is {type(pipe)}.")
+    if not isinstance(pipe, list) or not all(isinstance(item, RepeatPipe) for item in pipe):
+        raise ValueError(f"RepeatPipe must be a list of RepeatPipe objects. Instead, got {type(pipe)} with elements of type {[type(item) for item in pipe]}.")
+
     
 
 
