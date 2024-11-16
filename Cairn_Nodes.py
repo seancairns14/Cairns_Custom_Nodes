@@ -170,13 +170,13 @@ def repeat_ksample(repeat_pipes: list[RepeatPipe] = None,
     new_pipes = []
     for pipe in repeat_pipes:
 
-        model = repeat_pipes[pipe].model
-        positive = repeat_pipes[pipe].pos
-        negative = repeat_pipes[pipe].neg
-        latent_image = repeat_pipes[pipe].latent
-        vae = repeat_pipes[pipe].vae
-        clip = repeat_pipes[pipe].clip
-        prompt = repeat_pipes[pipe].prompt 
+        model = pipe
+        positive = pipe.pos
+        negative = pipe.neg
+        latent_image = pipe.latent
+        vae = pipe.vae
+        clip = pipe.clip
+        prompt = pipe.prompt 
 
         latent_image, positive, negative = ensure_defaults(model, latent_image, positive, negative, seed)
 
