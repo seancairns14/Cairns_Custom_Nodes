@@ -111,7 +111,7 @@ def RepeatPipe_IN(model: ModelTensor=None, pos: ConditioningTensor=None, neg: Co
     pipe.prompt = prompt
 
 
-    print("The type of pipe: " + type(pipe))
+    print("The type of pipe: " + "type(pipe)")
     return [pipe]  # Return the pipeline object
 
 
