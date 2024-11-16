@@ -43,49 +43,8 @@ def common_ksampler(model, seed, steps, cfg, sampler_name, scheduler, positive, 
     return (out, )
 
 
-@ComfyNode()
-def Cairns_ksample(model: ModelTensor=None, 
-                   seed: int = NumberInput(0, 0, 0xffffffffffffffff, step=1),
-                   steps: int = NumberInput(20, 1, 10000, step=1),
-                   cfg: float = NumberInput(8.0, 0.0, 100.0, step=0.1),
-                   sampler_name: str = Choice(comfy.samplers.KSampler.SAMPLERS),
-                   scheduler_name: str = Choice(comfy.samplers.KSampler.SCHEDULERS),
-                   positive: ConditioningTensor = None,  
-                   negative: ConditioningTensor = None,  
-                   latent_image: LatentTensor = None,    
-                   denoise: float = NumberInput(1.0, 0.0, 1.0, step=0.01)
-                   ) -> LatentTensor:
-
-    # Set default values for ConditioningTensors and LatentTensor if they are None
-    if latent_image is None:
-        latent_image = comfy.sample.create_random_latent(model.width, model.height, seed)
-        
-    if positive is None:
-        positive = ConditioningTensor.default_positive()
-
-    if negative is None:
-        negative = ConditioningTensor.default_negative()
-
-    # Call the common ksampler function
-    output_latent = common_ksampler(
-        model=model,
-        seed=seed,
-        steps=steps,
-        cfg=cfg,
-        sampler_name=sampler_name,
-        scheduler=scheduler_name,
-        positive=positive,
-        negative=negative,
-        latent=latent_image,
-        denoise=denoise
-    )
-
-
-    return output_latent
-
 class RepeatPipe:
     def __init__(self) -> None:
-        # Initialize attributes with default values
         self.model = None  # Expected to be a ModelTensor
         self.pos = None    # Expected to be a ConditioningTensor
         self.neg = None    # Expected to be a ConditioningTensor
@@ -94,10 +53,39 @@ class RepeatPipe:
 
 # Register the class as a pipeline type
 easy_nodes.register_type(RepeatPipe, "PIPELINE")
-
-# Create a field setter node for this pipeline
 easy_nodes.create_field_setter_node(RepeatPipe)
 
+
+def ensure_defaults(model, latent_image, positive, negative, seed):
+    if latent_image is None:
+        latent_image = comfy.sample.create_random_latent(model.width, model.height, seed)
+    if positive is None:
+        positive = ConditioningTensor.default_positive()
+    if negative is None:
+        negative = ConditioningTensor.default_negative()
+    return latent_image, positive, negative
+
+
+@ComfyNode()
+def Cairns_ksample(model: ModelTensor = None,
+                   seed: int = NumberInput(0, 0, 0xffffffffffffffff, step=1),
+                   steps: int = NumberInput(20, 1, 10000, step=1),
+                   cfg: float = NumberInput(8.0, 0.0, 100.0, step=0.1),
+                   sampler_name: str = Choice(comfy.samplers.KSampler.SAMPLERS),
+                   scheduler_name: str = Choice(comfy.samplers.KSampler.SCHEDULERS),
+                   positive: ConditioningTensor = None,  
+                   negative: ConditioningTensor = None,  
+                   latent_image: LatentTensor = None,
+                   denoise: float = NumberInput(1.0, 0.0, 1.0, step=0.01)) -> LatentTensor:
+
+    latent_image, positive, negative = ensure_defaults(model, latent_image, positive, negative, seed)
+
+    return common_ksampler(
+        model=model, seed=seed, steps=steps, cfg=cfg,
+        sampler_name=sampler_name, scheduler=scheduler_name,
+        positive=positive, negative=negative, latent=latent_image,
+        denoise=denoise
+    )
 
 
 @ComfyNode()
@@ -107,37 +95,21 @@ def repeat_ksample(repeat_pipe: RepeatPipe = None,
                    cfg: float = NumberInput(8.0, 0.0, 100.0, step=0.1),
                    sampler_name: str = Choice(comfy.samplers.KSampler.SAMPLERS),
                    scheduler_name: str = Choice(comfy.samplers.KSampler.SCHEDULERS),   
-                   denoise: float = NumberInput(1.0, 0.0, 1.0, step=0.01)
-                   ) -> LatentTensor:
+                   denoise: float = NumberInput(1.0, 0.0, 1.0, step=0.01)) -> LatentTensor:
+
+    if repeat_pipe is None:
+        raise ValueError("RepeatPipe must be provided.")
 
     model = repeat_pipe.model
     positive = repeat_pipe.pos
     negative = repeat_pipe.neg
     latent_image = repeat_pipe.latent
 
-    # Set default values for ConditioningTensors and LatentTensor if they are None
-    if latent_image is None:
-        latent_image = comfy.sample.create_random_latent(model.width, model.height, seed)
-        
-    if positive is None:
-        positive = ConditioningTensor.default_positive()
+    latent_image, positive, negative = ensure_defaults(model, latent_image, positive, negative, seed)
 
-    if negative is None:
-        negative = ConditioningTensor.default_negative()
-
-    # Call the common ksampler function
-    output_latent = common_ksampler(
-        model=model,
-        seed=seed,
-        steps=steps,
-        cfg=cfg,
-        sampler_name=sampler_name,
-        scheduler=scheduler_name,
-        positive=positive,
-        negative=negative,
-        latent=latent_image,
+    return common_ksampler(
+        model=model, seed=seed, steps=steps, cfg=cfg,
+        sampler_name=sampler_name, scheduler=scheduler_name,
+        positive=positive, negative=negative, latent=latent_image,
         denoise=denoise
     )
-
-
-    return output_latent
