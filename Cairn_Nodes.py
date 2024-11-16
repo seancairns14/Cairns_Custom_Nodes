@@ -95,7 +95,7 @@ easy_nodes.create_field_setter_node(RepeatPipe)
 # Define a custom node that will create and return a RepeatPipe instance
 @ComfyNode()
 def RepeatPipe_IN(model: ModelTensor=None, pos: ConditioningTensor=None, neg: ConditioningTensor=None, 
-                  latent: LatentTensor=None, vae: VAE=None, clip: CLIP=None, prompt: str=None) -> list[RepeatPipe]:
+                  latent: LatentTensor=None, vae: comfy.sd.VAE=None, clip: comfy.sd.CLIP=None, prompt: str=None) -> list[RepeatPipe]:
     
     # Instantiate the RepeatPipe
     pipe = RepeatPipe()
