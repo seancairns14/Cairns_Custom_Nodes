@@ -111,7 +111,6 @@ def RepeatPipe_IN(model: ModelTensor=None, pos: ConditioningTensor=None, neg: Co
     pipe.prompt = prompt
 
 
-    print("The type of pipe: " + "type(pipe)")
     return [pipe]  # Return the pipeline object
 
 
@@ -161,7 +160,7 @@ def repeat_ksample(repeat_pipes: list[RepeatPipe] = None,
                    text: str = StringInput("Example: ['This prompt, is, one prompt', 'This is, another']")) -> list[LatentTensor]:
 
     if repeat_pipes is None or len(repeat_pipes) == 0:
-        raise ValueError("RepeatPipe must be provided.")
+        raise ValueError(f"RepeatPipe must be provided. Instead {type(repeat_pipes)} was provided.")
     new_pipes = []
     for pipe in repeat_pipes:
 
