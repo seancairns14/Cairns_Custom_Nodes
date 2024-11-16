@@ -7,7 +7,8 @@ from easy_nodes import (
     ImageTensor,
     Choice,
     LatentTensor,
-    ModelTensor
+    ModelTensor,
+    ConditioningTensor
 )
 import easy_nodes
 import comfy.samplers
