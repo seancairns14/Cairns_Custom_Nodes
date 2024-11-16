@@ -9,11 +9,14 @@ from easy_nodes import (
     LatentTensor,
     ModelTensor,
     ConditioningTensor
+    
 )
+
 import easy_nodes
 import comfy.samplers
 import comfy.utils
 import latent_preview
+from comfy.sd import VAE, CLIP
 
 import re
 
@@ -91,20 +94,9 @@ easy_nodes.create_field_setter_node(RepeatPipe)
 
 # Define a custom node that will create and return a RepeatPipe instance
 @ComfyNode()
-def RepeatPipe_IN(model=None, pos=None, neg=None, latent=None, vae=None, clip=None, prompt=None) -> list[RepeatPipe]:
-    """
-    A node that creates and returns an instance of the RepeatPipe class.
+def RepeatPipe_IN(model: ModelTensor=None, pos: ConditioningTensor=None, neg: ConditioningTensor=None, 
+                  latent: LatentTensor=None, vae: VAE=None, clip: CLIP=None, prompt: str=None) -> list[RepeatPipe]:
     
-    Args:
-        model: The model tensor to be used in the pipeline.
-        pos: Positive conditioning tensor.
-        neg: Negative conditioning tensor.
-        latent: Latent tensor.
-        vae: VAE for the pipeline.
-    
-    Returns:
-        RepeatPipe: An instance of the RepeatPipe class with set fields.
-    """
     # Instantiate the RepeatPipe
     pipe = RepeatPipe()
 
