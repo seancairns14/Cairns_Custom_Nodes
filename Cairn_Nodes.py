@@ -110,12 +110,13 @@ def RepeatPipe_IN(model: ModelTensor=None, pos: ConditioningTensor=None, neg: Co
     pipe.clip = clip
     pipe.prompt = prompt
 
-    if pipe is None:
-        raise ValueError(f"RepeatPipe is None.")
+    pipe = [pipe]
+    if type(pipe) != list(RepeatPipe):
+        raise ValueError(f"RepeatPipe is {type(pipe)}.")
     
 
 
-    return [pipe]  # Return the pipeline object
+    return pipe  # Return the pipeline object
 
 
 
