@@ -15,6 +15,9 @@ import comfy.samplers
 import comfy.utils
 import latent_preview
 
+import re
+
+
 
 # Define the common k-sampler function
 def common_ksampler(model, seed, steps, cfg, sampler_name, scheduler, positive, negative, latent, denoise=1.0, disable_noise=False, start_step=None, last_step=None, force_full_denoise=False):
@@ -43,6 +46,34 @@ def common_ksampler(model, seed, steps, cfg, sampler_name, scheduler, positive, 
     out["samples"] = samples
     return (out, )
 
+def text_encode(clip, text):
+        tokens = clip.tokenize(text)
+        output = clip.encode_from_tokens(tokens, return_pooled=True, return_dict=True)
+        cond = output.pop("cond")
+        return ([[cond, output]], )
+
+
+def extract_prompt_list(input_str: str):
+    # Regular expression pattern to match the strings inside the brackets and quotes
+    pattern = r"'([^']*)'"
+    
+    # Use re.findall to extract all matches (each string inside the quotes)
+    prompts = re.findall(pattern, input_str)
+    
+    # Now, for each prompt, split by commas outside the quotes
+    result = [prompt.split(',') for prompt in prompts]
+    
+    return result
+
+def concat_prompt_lists(list1, list2):
+    # Concatenate both lists
+    combined_list = list1 + list2
+    
+    # Join all elements of the combined list into a single string
+    combined_prompt = ' '.join(combined_list)  # You can change the separator if needed
+    
+    return combined_prompt
+
 
 class RepeatPipe:
     def __init__(self) -> None:
@@ -51,6 +82,8 @@ class RepeatPipe:
         self.neg = None    # Expected to be a ConditioningTensor
         self.latent = None # Expected to be a LatentTensor
         self.vae = None    # Expected to be a VAE
+        self.clip = None
+        self.prompt = None
 
 # Register the class as a pipeline type
 easy_nodes.register_type(RepeatPipe, "PIPELINE")
@@ -58,7 +91,7 @@ easy_nodes.create_field_setter_node(RepeatPipe)
 
 # Define a custom node that will create and return a RepeatPipe instance
 @ComfyNode()
-def RepeatPipe_IN(model=None, pos=None, neg=None, latent=None, vae=None) -> list[RepeatPipe]:
+def RepeatPipe_IN(model=None, pos=None, neg=None, latent=None, vae=None, clip=None, prompt=None) -> list[RepeatPipe]:
     """
     A node that creates and returns an instance of the RepeatPipe class.
     
@@ -81,6 +114,8 @@ def RepeatPipe_IN(model=None, pos=None, neg=None, latent=None, vae=None) -> list
     pipe.neg = neg
     pipe.latent = latent
     pipe.vae = vae
+    pipe.clip = clip
+    pipe.prompt = prompt
 
     return [pipe]  # Return the pipeline object
 
@@ -94,6 +129,8 @@ def ensure_defaults(model, latent_image, positive, negative, seed):
     if negative is None:
         negative = ConditioningTensor.default_negative()
     return latent_image, positive, negative
+
+
 
 
 @ComfyNode()
@@ -119,27 +156,52 @@ def Cairns_ksample(model: ModelTensor = None,
 
 
 @ComfyNode()
-def repeat_ksample(repeat_pipe: list[RepeatPipe] = None,
+def repeat_ksample(repeat_pipes: list[RepeatPipe] = None,
                    seed: int = NumberInput(0, 0, 0xffffffffffffffff, step=1),
                    steps: int = NumberInput(20, 1, 10000, step=1),
                    cfg: float = NumberInput(8.0, 0.0, 100.0, step=0.1),
                    sampler_name: str = Choice(comfy.samplers.KSampler.SAMPLERS),
                    scheduler_name: str = Choice(comfy.samplers.KSampler.SCHEDULERS),   
-                   denoise: float = NumberInput(1.0, 0.0, 1.0, step=0.01)) -> list[LatentTensor]:
+                   denoise: float = NumberInput(1.0, 0.0, 1.0, step=0.01),
+                   text: str = StringInput("Example: ['This prompt, is, one prompt', 'This is, another']")) -> list[LatentTensor]:
 
-    if repeat_pipe[0] is None:
-        raise ValueError("RepeatPipe must be provided.")
+    if repeat_pipes[0] is None:
+            raise ValueError("RepeatPipe must be provided.")
+    new_pipes = []
+    for pipe in repeat_pipes:
 
-    model = repeat_pipe[0].model
-    positive = repeat_pipe[0].pos
-    negative = repeat_pipe[0].neg
-    latent_image = repeat_pipe[0].latent
+        model = repeat_pipes[pipe].model
+        positive = repeat_pipes[pipe].pos
+        negative = repeat_pipes[pipe].neg
+        latent_image = repeat_pipes[pipe].latent
+        vae = repeat_pipes[pipe].vae
+        clip = repeat_pipes[pipe].clip
+        prompt = repeat_pipes[pipe].prompt 
 
-    latent_image, positive, negative = ensure_defaults(model, latent_image, positive, negative, seed)
+        latent_image, positive, negative = ensure_defaults(model, latent_image, positive, negative, seed)
 
-    return common_ksampler(
-        model=model, seed=seed, steps=steps, cfg=cfg,
-        sampler_name=sampler_name, scheduler=scheduler_name,
-        positive=positive, negative=negative, latent=latent_image,
-        denoise=denoise
-    )
+        text_list = extract_prompt_list(text)
+        prompt_list = extract_prompt_list(prompt)
+
+        for p in prompt_list:
+            for t in text_list:
+                new_prompt = concat_prompt_lists(p, t)
+                new_positive = text_encode(clip=clip, text=new_prompt)
+                new_latent = common_ksampler(
+                    model=model, seed=seed, steps=steps, cfg=cfg,
+                    sampler_name=sampler_name, scheduler=scheduler_name,
+                    positive=new_positive, negative=negative, latent=latent_image,
+                    denoise=denoise
+                )
+                pipe = RepeatPipe()
+                pipe.model = model
+                pipe.pos = new_positive
+                pipe.neg = negative
+                pipe.latent = new_latent
+                pipe.vae = vae
+                pipe.clip = clip
+                pipe.prompt = new_prompt
+                new_pipes.append(pipe)
+
+
+    return new_pipes
