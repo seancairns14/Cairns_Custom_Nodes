@@ -125,7 +125,7 @@ def repeat_ksample(repeat_pipe: list[RepeatPipe] = None,
                    cfg: float = NumberInput(8.0, 0.0, 100.0, step=0.1),
                    sampler_name: str = Choice(comfy.samplers.KSampler.SAMPLERS),
                    scheduler_name: str = Choice(comfy.samplers.KSampler.SCHEDULERS),   
-                   denoise: float = NumberInput(1.0, 0.0, 1.0, step=0.01)) -> LatentTensor:
+                   denoise: float = NumberInput(1.0, 0.0, 1.0, step=0.01)) -> list[LatentTensor]:
 
     if repeat_pipe[0] is None:
         raise ValueError("RepeatPipe must be provided.")
