@@ -84,14 +84,20 @@ def Cairns_ksample(model: ModelTensor=None,
     return output_latent
 
 class RepeatPipe:
-    def __init__(self, model, pos, neg, latent, vae) -> None:
-        self.model = model
-        self.pos = pos
-        self.neg = neg
-        self.latent = latent
-        self.vae = vae
+    def __init__(self) -> None:
+        # Initialize attributes with default values
+        self.model = None  # Expected to be a ModelTensor
+        self.pos = None    # Expected to be a ConditioningTensor
+        self.neg = None    # Expected to be a ConditioningTensor
+        self.latent = None # Expected to be a LatentTensor
+        self.vae = None    # Expected to be a VAE
+
+# Register the class as a pipeline type
 easy_nodes.register_type(RepeatPipe, "PIPELINE")
+
+# Create a field setter node for this pipeline
 easy_nodes.create_field_setter_node(RepeatPipe)
+
 
 
 @ComfyNode()
