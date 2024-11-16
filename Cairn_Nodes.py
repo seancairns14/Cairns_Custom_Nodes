@@ -16,7 +16,7 @@ import easy_nodes
 import comfy.samplers
 import comfy.utils
 import latent_preview
-from comfy.sd import VAE, CLIP
+import comfy.sd
 
 import re
 
