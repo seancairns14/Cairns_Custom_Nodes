@@ -111,7 +111,7 @@ def RepeatPipe_IN(model: ModelTensor=None, pos: ConditioningTensor=None, neg: Co
     pipe.prompt = prompt
 
     if pipe is None:
-        raise ValueError(f"RepeatPipe must be provided. Instead {type(pipe)} was provided.")
+        raise ValueError(f"RepeatPipe is None.")
     
 
 
