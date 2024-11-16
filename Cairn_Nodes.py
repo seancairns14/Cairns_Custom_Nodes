@@ -15,6 +15,7 @@ import comfy.samplers
 import comfy.utils
 import latent_preview
 
+
 # Define the common k-sampler function
 def common_ksampler(model, seed, steps, cfg, sampler_name, scheduler, positive, negative, latent, denoise=1.0, disable_noise=False, start_step=None, last_step=None, force_full_denoise=False):
     latent_image = latent["samples"]
@@ -55,6 +56,35 @@ class RepeatPipe:
 easy_nodes.register_type(RepeatPipe, "PIPELINE")
 easy_nodes.create_field_setter_node(RepeatPipe)
 
+# Define a custom node that will create and return a RepeatPipe instance
+@ComfyNode()
+def RepeatPipe_IN(model=None, pos=None, neg=None, latent=None, vae=None) -> list[RepeatPipe]:
+    """
+    A node that creates and returns an instance of the RepeatPipe class.
+    
+    Args:
+        model: The model tensor to be used in the pipeline.
+        pos: Positive conditioning tensor.
+        neg: Negative conditioning tensor.
+        latent: Latent tensor.
+        vae: VAE for the pipeline.
+    
+    Returns:
+        RepeatPipe: An instance of the RepeatPipe class with set fields.
+    """
+    # Instantiate the RepeatPipe
+    pipe = RepeatPipe()
+
+    # Set the attributes based on the input arguments (optional)
+    pipe.model = model
+    pipe.pos = pos
+    pipe.neg = neg
+    pipe.latent = latent
+    pipe.vae = vae
+
+    return [pipe]  # Return the pipeline object
+
+
 
 def ensure_defaults(model, latent_image, positive, negative, seed):
     if latent_image is None:
@@ -89,7 +119,7 @@ def Cairns_ksample(model: ModelTensor = None,
 
 
 @ComfyNode()
-def repeat_ksample(repeat_pipe: RepeatPipe = None,
+def repeat_ksample(repeat_pipe: list[RepeatPipe] = None,
                    seed: int = NumberInput(0, 0, 0xffffffffffffffff, step=1),
                    steps: int = NumberInput(20, 1, 10000, step=1),
                    cfg: float = NumberInput(8.0, 0.0, 100.0, step=0.1),
@@ -97,13 +127,13 @@ def repeat_ksample(repeat_pipe: RepeatPipe = None,
                    scheduler_name: str = Choice(comfy.samplers.KSampler.SCHEDULERS),   
                    denoise: float = NumberInput(1.0, 0.0, 1.0, step=0.01)) -> LatentTensor:
 
-    if repeat_pipe is None:
+    if repeat_pipe[0] is None:
         raise ValueError("RepeatPipe must be provided.")
 
-    model = repeat_pipe.model
-    positive = repeat_pipe.pos
-    negative = repeat_pipe.neg
-    latent_image = repeat_pipe.latent
+    model = repeat_pipe[0].model
+    positive = repeat_pipe[0].pos
+    negative = repeat_pipe[0].neg
+    latent_image = repeat_pipe[0].latent
 
     latent_image, positive, negative = ensure_defaults(model, latent_image, positive, negative, seed)
 
