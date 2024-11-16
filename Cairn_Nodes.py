@@ -158,9 +158,8 @@ def repeat_ksample(repeat_pipes: list[RepeatPipe] = None,
                    denoise: float = NumberInput(1.0, 0.0, 1.0, step=0.01),
                    text: str = StringInput("Example: ['This prompt, is, one prompt', 'This is, another']")) -> list[LatentTensor]:
 
-    if len(repeat_pipes) == 0:
-            print(repeat_pipes)
-            raise ValueError("RepeatPipe must be provided.")
+    if repeat_pipes is None or len(repeat_pipes) == 0:
+        raise ValueError("RepeatPipe must be provided.")
     new_pipes = []
     for pipe in repeat_pipes:
 
