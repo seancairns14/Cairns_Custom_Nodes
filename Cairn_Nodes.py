@@ -79,6 +79,13 @@ def concat_prompt_lists(list1, list2):
     return combined_prompt
 
 
+def decode(vae, samples):
+        images = vae.decode(samples["samples"])
+        if len(images.shape) == 5: #Combine batches
+            images = images.reshape(-1, images.shape[-3], images.shape[-2], images.shape[-1])
+        return (images, )
+
+
 class RepeatPipe:
     def __init__(self) -> None:
         self.model = None  # Expected to be a ModelTensor
@@ -88,6 +95,7 @@ class RepeatPipe:
         self.vae = None    # Expected to be a VAE
         self.clip = None
         self.prompt = None
+        self.image = None
 
 # Register the class as a pipeline type
 easy_nodes.register_type(RepeatPipe, "PIPELINE")
@@ -96,7 +104,7 @@ easy_nodes.create_field_setter_node(RepeatPipe)
 # Define a custom node that will create and return a RepeatPipe instance
 @ComfyNode()
 def RepeatPipe_IN(model: ModelTensor=None, pos: ConditioningTensor=None, neg: ConditioningTensor=None, 
-                  latent: LatentTensor=None, vae: comfy.sd.VAE=None, clip: AnyType=None, prompt: str=None) -> list[RepeatPipe]:
+                  latent: LatentTensor=None, vae: comfy.sd.VAE=None, clip: AnyType=None, prompt: str=None, image: ImageTensor = None) -> list[RepeatPipe]:
     
     # Instantiate the RepeatPipe
     pipe = RepeatPipe()
@@ -109,6 +117,34 @@ def RepeatPipe_IN(model: ModelTensor=None, pos: ConditioningTensor=None, neg: Co
     pipe.vae = vae
     pipe.clip = clip
     pipe.prompt = prompt
+    pipe.image = image
+
+    pipe = [pipe]
+    if not isinstance(pipe, list) or not all(isinstance(item, RepeatPipe) for item in pipe):
+        raise ValueError(f"RepeatPipe must be a list of RepeatPipe objects. Instead, got {type(pipe)} with elements of type {[type(item) for item in pipe]}.")
+
+    
+
+
+    return pipe  # Return the pipeline object
+
+
+@ComfyNode()
+def RepeatPipe_OUT(model: ModelTensor=None, pos: ConditioningTensor=None, neg: ConditioningTensor=None, 
+                  latent: LatentTensor=None, vae: comfy.sd.VAE=None, clip: AnyType=None, prompt: str=None, image: ImageTensor = None) -> list[RepeatPipe]:
+    
+    # Instantiate the RepeatPipe
+    pipe = RepeatPipe()
+
+    # Set the attributes based on the input arguments (optional)
+    pipe.model = model
+    pipe.pos = pos
+    pipe.neg = neg
+    pipe.latent = latent
+    pipe.vae = vae
+    pipe.clip = clip
+    pipe.prompt = prompt
+    pipe.image = image
 
     pipe = [pipe]
     if not isinstance(pipe, list) or not all(isinstance(item, RepeatPipe) for item in pipe):
@@ -177,6 +213,7 @@ def repeat_ksample(repeat_pipes: list[RepeatPipe] = None,
         vae = pipe.vae
         clip = pipe.clip
         prompt = pipe.prompt 
+        image = pipe.image
 
         latent_image, positive, negative = ensure_defaults(model, latent_image, positive, negative, seed)
 
@@ -193,15 +230,16 @@ def repeat_ksample(repeat_pipes: list[RepeatPipe] = None,
                     positive=new_positive, negative=negative, latent=latent_image,
                     denoise=denoise
                 )
-                pipe = RepeatPipe()
-                pipe.model = model
-                pipe.pos = new_positive
-                pipe.neg = negative
-                pipe.latent = new_latent
-                pipe.vae = vae
-                pipe.clip = clip
-                pipe.prompt = new_prompt
-                new_pipes.append(pipe)
+                new_pipe = RepeatPipe()
+                new_pipe.model = model
+                new_pipe.pos = new_positive
+                new_pipe.neg = negative
+                new_pipe.latent = new_latent
+                new_pipe.vae = vae
+                new_pipe.clip = clip
+                new_pipe.prompt = new_prompt
+                new_pipe.image = decode(vae=new_pipe.vae, samples=new_latent)
+                new_pipes.append(new_pipe)
 
 
     return new_pipes
