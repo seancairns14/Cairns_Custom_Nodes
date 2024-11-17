@@ -177,7 +177,7 @@ def repeat_ksample(repeat_pipes: list[RepeatPipe] = None,
                    sampler_name: str = Choice(comfy.samplers.KSampler.SAMPLERS),
                    scheduler_name: str = Choice(comfy.samplers.KSampler.SCHEDULERS),   
                    denoise: float = NumberInput(1.0, 0.0, 1.0, step=0.01),
-                   text: str = StringInput("Example: ['This prompt, is, one prompt', 'This is, another']")) -> list[LatentTensor]:
+                   text: str = StringInput("Example: ['This prompt, is, one prompt', 'This is, another']")) -> list[RepeatPipe]:
 
     if repeat_pipes is None or len(repeat_pipes) == 0:
         raise ValueError(f"RepeatPipe must be provided. Instead {type(repeat_pipes)} was provided.")
