@@ -130,30 +130,8 @@ def RepeatPipe_IN(model: ModelTensor=None, pos: ConditioningTensor=None, neg: Co
 
 
 @ComfyNode()
-def RepeatPipe_OUT(model: ModelTensor=None, pos: ConditioningTensor=None, neg: ConditioningTensor=None, 
-                  latent: LatentTensor=None, vae: comfy.sd.VAE=None, clip: AnyType=None, prompt: str=None, image: ImageTensor = None) -> list[RepeatPipe]:
-    
-    # Instantiate the RepeatPipe
-    pipe = RepeatPipe()
-
-    # Set the attributes based on the input arguments (optional)
-    pipe.model = model
-    pipe.pos = pos
-    pipe.neg = neg
-    pipe.latent = latent
-    pipe.vae = vae
-    pipe.clip = clip
-    pipe.prompt = prompt
-    pipe.image = image
-
-    pipe = [pipe]
-    if not isinstance(pipe, list) or not all(isinstance(item, RepeatPipe) for item in pipe):
-        raise ValueError(f"RepeatPipe must be a list of RepeatPipe objects. Instead, got {type(pipe)} with elements of type {[type(item) for item in pipe]}.")
-
-    
-
-
-    return pipe  # Return the pipeline object
+def RepeatPipe_OUT(repeat_pipes: list[RepeatPipe]) -> list[ImageTensor]:
+    return [pipe.image for pipe in repeat_pipes if pipe.image is not None] 
 
 
 
