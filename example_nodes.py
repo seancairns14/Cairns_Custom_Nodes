@@ -101,6 +101,7 @@ def preview_example(str2: str = StringInput("")) -> str:
     return str2
 
 
+
 # Wrapping a class method
 class AnotherExampleClass:
     class_counter = 42

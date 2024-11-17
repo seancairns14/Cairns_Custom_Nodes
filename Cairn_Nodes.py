@@ -231,45 +231,16 @@ def repeat_ksample(repeat_pipes: list[RepeatPipe] = None,
     return new_pipes
 
 
-@ComfyNode()
-def preview_pipe_images(
-    repeat_pipe: list[RepeatPipe], 
-    filename_prefix: str = StringInput("ComfyUI_Preview")
-) -> list[RepeatPipe]:
+@ComfyNode(is_output_node=True, color="#006600")
+def preview_pipe_images(repeat_pipe: list[RepeatPipe]) -> list[RepeatPipe]:
     """
-    Generates and saves preview images from the given list of RepeatPipe objects.
-    Images are temporarily saved in the ComfyUI temp directory.
+    Displays preview images from the given list of RepeatPipe objects.
+    This node uses easy_nodes.show_image for displaying images.
     """
-    # Setup
-    output_dir = folder_paths.get_temp_directory()
-    compress_level = 1
-    filename_prefix += "_temp_" + ''.join(random.choice("abcdefghijklmnopqrstuvwxyz") for _ in range(5))
-    
-    # Results for UI
-    results = []
-
-    # Process each RepeatPipe and save its image
-    for batch_number, pipe in enumerate(repeat_pipe):
+    # Loop through the RepeatPipe objects
+    for pipe in repeat_pipe:
         image = getattr(pipe, 'image', None)  # Get the image from the pipe
-        if image is None:
-            continue
+        if image is not None:
+            easy_nodes.show_image(image)  # Display the image
 
-        img_data = (255. * image.cpu().numpy()).astype(np.uint8)
-        img = Image.fromarray(np.clip(img_data, 0, 255))
-
-        # Temporary save path
-        file = f"{filename_prefix}_{batch_number:05}_.png"
-        temp_path = os.path.join(output_dir, file)
-
-        # Save image
-        img.save(temp_path, compress_level=compress_level)
-
-        # Append to results
-        results.append({
-            "filename": file,
-            "path": temp_path,
-            "type": "temp"
-        })
-
-    # Return updated pipes for downstream nodes
     return repeat_pipe
