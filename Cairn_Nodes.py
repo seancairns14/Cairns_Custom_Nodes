@@ -192,14 +192,13 @@ def repeat_ksample(repeat_pipes: list[RepeatPipe] = None,
     new_pipes = []
     for pipe in repeat_pipes:
 
-        model = pipe
+        model = pipe.model
         positive = pipe.pos
         negative = pipe.neg
         latent_image = pipe.latent
         vae = pipe.vae
         clip = pipe.clip
         prompt = pipe.prompt 
-        image = pipe.image
 
         latent_image, positive, negative = ensure_defaults(model, latent_image, positive, negative, seed)
 
