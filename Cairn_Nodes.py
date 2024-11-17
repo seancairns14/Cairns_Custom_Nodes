@@ -28,6 +28,7 @@ import re
 import json
 import os
 import numpy as np
+import random
 
 
 # Define the common k-sampler function
@@ -231,37 +232,44 @@ def repeat_ksample(repeat_pipes: list[RepeatPipe] = None,
 
 
 @ComfyNode()
-def repeat_pipe_save_image(images: ImageTensor=None, filename_prefix: str = "ComfyUI"):
+def preview_pipe_images(
+    repeat_pipe: list[RepeatPipe], 
+    filename_prefix: str = StringInput("ComfyUI_Preview")
+) -> list[RepeatPipe]:
     """
-    Saves the input images to your ComfyUI output directory.
+    Generates and saves preview images from the given list of RepeatPipe objects.
+    Images are temporarily saved in the ComfyUI temp directory.
     """
-    prompt = None
-    extra_pnginfo = None
-    output_dir = folder_paths.get_output_directory()
-    compress_level = 4
-    filename_prefix += ""
-    full_output_folder, filename, counter, subfolder, filename_prefix = folder_paths.get_save_image_path(
-        filename_prefix, output_dir, images[0].shape[1], images[0].shape[0]
-    )
+    # Setup
+    output_dir = folder_paths.get_temp_directory()
+    compress_level = 1
+    filename_prefix += "_temp_" + ''.join(random.choice("abcdefghijklmnopqrstuvwxyz") for _ in range(5))
+    
+    # Results for UI
     results = []
-    for batch_number, image in enumerate(images):
+
+    # Process each RepeatPipe and save its image
+    for batch_number, pipe in enumerate(repeat_pipe):
+        image = getattr(pipe, 'image', None)  # Get the image from the pipe
+        if image is None:
+            continue
+
         img_data = (255. * image.cpu().numpy()).astype(np.uint8)
         img = Image.fromarray(np.clip(img_data, 0, 255))
-        metadata = None
-        if not args.disable_metadata:
-            metadata = PngInfo()
-            if prompt is not None:
-                metadata.add_text("prompt", json.dumps(prompt))
-            if extra_pnginfo is not None:
-                for key, value in extra_pnginfo.items():
-                    metadata.add_text(key, json.dumps(value))
-        filename_with_batch_num = filename.replace("%batch_num%", str(batch_number))
-        file = f"{filename_with_batch_num}_{counter:05}_.png"
-        img.save(os.path.join(full_output_folder, file), pnginfo=metadata, compress_level=compress_level)
+
+        # Temporary save path
+        file = f"{filename_prefix}_{batch_number:05}_.png"
+        temp_path = os.path.join(output_dir, file)
+
+        # Save image
+        img.save(temp_path, compress_level=compress_level)
+
+        # Append to results
         results.append({
             "filename": file,
-            "subfolder": subfolder,
-            "type": "output"
+            "path": temp_path,
+            "type": "temp"
         })
-        counter += 1
-    return {"ui": {"images": results}}
+
+    # Return updated pipes for downstream nodes
+    return repeat_pipe
