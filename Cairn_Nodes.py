@@ -22,6 +22,7 @@ from nodes import SaveImage
 import folder_paths
 from PIL.PngImagePlugin import PngInfo
 from PIL import Image, ImageOps, ImageSequence, ImageFile
+from comfy.cli_args import args
 
 import re
 import json
