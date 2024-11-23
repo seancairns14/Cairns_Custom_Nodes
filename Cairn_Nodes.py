@@ -111,8 +111,8 @@ easy_nodes.create_field_setter_node(RepeatPipe)
 
 # Define a custom node that will create and return a RepeatPipe instance
 @ComfyNode()
-def RepeatPipe_IN(model: ModelTensor=None, pos: ConditioningTensor=None, neg: ConditioningTensor=None, 
-                  latent: LatentTensor=None, vae: comfy.sd.VAE=None, clip: AnyType=None, prompt: str=None, image: ImageTensor = None) -> list[RepeatPipe]:
+def RepeatPipe_IN(model: ModelTensor, pos: ConditioningTensor, neg: ConditioningTensor, 
+                  latent: LatentTensor, vae: comfy.sd.VAE, clip: AnyType, prompt: str, image: ImageTensor) -> list[RepeatPipe]:
     
     # Instantiate the RepeatPipe
     pipe = RepeatPipe()
@@ -156,7 +156,7 @@ def ensure_defaults(model, latent_image, positive, negative, seed):
 
 
 @ComfyNode()
-def Cairns_ksample(pipe: list[RepeatPipe],
+def Cairns_ksample(repeat_pipes: list[RepeatPipe],
                    seed: int = NumberInput(0, 0, 0xffffffffffffffff, step=1),
                    steps: int = NumberInput(20, 1, 10000, step=1),
                    cfg: float = NumberInput(8.0, 0.0, 100.0, step=0.1),
@@ -164,7 +164,7 @@ def Cairns_ksample(pipe: list[RepeatPipe],
                    scheduler_name: str = Choice(comfy.samplers.KSampler.SCHEDULERS),  
                    denoise: float = NumberInput(1.0, 0.0, 1.0, step=0.01)) -> LatentTensor:
     
-
+    pipe = repeat_pipes[0]
     model = pipe.model
     positive = pipe.pos
     negative = pipe.neg
