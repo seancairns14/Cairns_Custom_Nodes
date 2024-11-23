@@ -30,6 +30,18 @@ import os
 import numpy as np
 import random
 
+import logging
+
+
+logging.basicConfig(
+    level=logging.DEBUG,  # Log all messages of level DEBUG or higher
+    format='%(asctime)s - %(levelname)s - %(message)s'  # Customize log message format
+)
+
+# Create a logger
+logger = logging.getLogger("MyLogger")
+logger.setLevel(logging.DEBUG)  # Log all levels from DEBUG and above
+
 
 # Define the common k-sampler function
 def common_ksampler(model, seed, steps, cfg, sampler_name, scheduler, positive, negative, latent, denoise=1.0, disable_noise=False, start_step=None, last_step=None, force_full_denoise=False):
@@ -114,6 +126,8 @@ easy_nodes.create_field_setter_node(RepeatPipe)
 def RepeatPipe_IN(model: ModelTensor, pos: ConditioningTensor, neg: ConditioningTensor, 
                   latent: LatentTensor, vae: comfy.sd.VAE, clip: AnyType, prompt: str, image: ImageTensor) -> list[RepeatPipe]:
     
+    logger.debug("This is a debug message")
+
     # Instantiate the RepeatPipe
     pipe = RepeatPipe()
 
@@ -165,7 +179,6 @@ def Cairns_ksample(repeat_pipes: list[RepeatPipe],
                    denoise: float = NumberInput(1.0, 0.0, 1.0, step=0.01)) -> LatentTensor:
     
     pipe = repeat_pipes[0]
-    print("This is a test Debugging")
     model = pipe.model
     positive = pipe.pos
     negative = pipe.neg
