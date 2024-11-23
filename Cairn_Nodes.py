@@ -165,6 +165,7 @@ def Cairns_ksample(repeat_pipes: list[RepeatPipe],
                    denoise: float = NumberInput(1.0, 0.0, 1.0, step=0.01)) -> LatentTensor:
     
     pipe = repeat_pipes[0]
+    print("This is a test Debugging")
     model = pipe.model
     positive = pipe.pos
     negative = pipe.neg
