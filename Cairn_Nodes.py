@@ -156,16 +156,19 @@ def ensure_defaults(model, latent_image, positive, negative, seed):
 
 
 @ComfyNode()
-def Cairns_ksample(model: ModelTensor = None,
+def Cairns_ksample(pipe: list[RepeatPipe],
                    seed: int = NumberInput(0, 0, 0xffffffffffffffff, step=1),
                    steps: int = NumberInput(20, 1, 10000, step=1),
                    cfg: float = NumberInput(8.0, 0.0, 100.0, step=0.1),
                    sampler_name: str = Choice(comfy.samplers.KSampler.SAMPLERS),
-                   scheduler_name: str = Choice(comfy.samplers.KSampler.SCHEDULERS),
-                   positive: ConditioningTensor = None,  
-                   negative: ConditioningTensor = None,  
-                   latent_image: LatentTensor = None,
+                   scheduler_name: str = Choice(comfy.samplers.KSampler.SCHEDULERS),  
                    denoise: float = NumberInput(1.0, 0.0, 1.0, step=0.01)) -> LatentTensor:
+    
+
+    model = pipe.model
+    positive = pipe.pos
+    negative = pipe.neg
+    latent_image = pipe.latent
 
     latent_image, positive, negative = ensure_defaults(model, latent_image, positive, negative, seed)
 
