@@ -125,13 +125,19 @@ easy_nodes.create_field_setter_node(RepeatPipe)
 @ComfyNode()
 def RepeatPipe_IN(model: ModelTensor, pos: ConditioningTensor, neg: ConditioningTensor, 
                   latent: LatentTensor, vae: comfy.sd.VAE, clip: AnyType, prompt: str, image: ImageTensor) -> list[RepeatPipe]:
-    
-    logger.debug("This is a debug message")
+    logging.debug("Starting RepeatPipe_IN function")
+
+    # Validate and log input arguments
+    logging.debug("Received inputs - Model: %s, Positive Conditioning: %s, Negative Conditioning: %s", 
+                  model, pos, neg)
+    logging.debug("Latent Tensor: %s, VAE: %s, Clip: %s", latent, vae, clip)
+    logging.debug("Prompt: %s, Image Tensor: %s", prompt, image)
 
     # Instantiate the RepeatPipe
     pipe = RepeatPipe()
+    logging.debug("Created new RepeatPipe instance")
 
-    # Set the attributes based on the input arguments (optional)
+    # Set the attributes based on the input arguments
     pipe.model = model
     pipe.pos = pos
     pipe.neg = neg
@@ -141,10 +147,26 @@ def RepeatPipe_IN(model: ModelTensor, pos: ConditioningTensor, neg: Conditioning
     pipe.prompt = prompt
     pipe.image = image
 
-    pipe = [pipe]
-    if not isinstance(pipe, list) or not all(isinstance(item, RepeatPipe) for item in pipe):
-        raise ValueError(f"RepeatPipe must be a list of RepeatPipe objects. Instead, got {type(pipe)} with elements of type {[type(item) for item in pipe]}.")
+    logging.debug("Set attributes for RepeatPipe - Model: %s, Pos: %s, Neg: %s, Latent: %s, VAE: %s, Clip: %s, Prompt: %s, Image: %s", 
+                  pipe.model, pipe.pos, pipe.neg, pipe.latent, pipe.vae, pipe.clip, pipe.prompt, pipe.image)
 
+    # Wrap the pipe in a list
+    pipe = [pipe]
+    logging.debug("Wrapped RepeatPipe instance in a list")
+
+    # Validate the output
+    if not isinstance(pipe, list):
+        logging.error("Output is not a list. Got: %s", type(pipe))
+        raise ValueError(f"RepeatPipe must be a list of RepeatPipe objects. Instead, got {type(pipe)}.")
+    if not all(isinstance(item, RepeatPipe) for item in pipe):
+        item_types = [type(item) for item in pipe]
+        logging.error("Not all elements in the list are RepeatPipe objects. Element types: %s", item_types)
+        raise ValueError(f"RepeatPipe must be a list of RepeatPipe objects. Instead, got a list with elements of type {item_types}.")
+
+    logging.debug("Validated output: List of RepeatPipe objects")
+    logging.info("Successfully created and returned a list of RepeatPipe objects with %d item(s)", len(pipe))
+    
+    return pipe  # Return the pipeline object
     
 
 
