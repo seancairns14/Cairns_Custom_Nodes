@@ -138,8 +138,8 @@ def RepeatPipe_IN(model: ModelTensor, pos: ConditioningTensor, neg: Conditioning
 
 
 @ComfyNode()
-def RepeatPipe_OUT(repeat_pipes: list[RepeatPipe]) -> list[ImageTensor]:
-    return [pipe.image for pipe in repeat_pipes if pipe.image is not None] 
+def RepeatPipe_OUT(repeat_pipes: list[RepeatPipe]) -> RepeatPipe:
+    return [pipe for pipe in repeat_pipes if pipe is not None] 
 
 
 
@@ -181,7 +181,7 @@ def Cairns_ksample(repeat_pipes: list[RepeatPipe],
 
 
 @ComfyNode()
-def repeat_ksample(repeat_pipes: list[RepeatPipe] = None,
+def repeat_ksample(repeat_pipes: list[RepeatPipe],
                    seed: int = NumberInput(0, 0, 0xffffffffffffffff, step=1),
                    steps: int = NumberInput(20, 1, 10000, step=1),
                    cfg: float = NumberInput(8.0, 0.0, 100.0, step=0.1),
