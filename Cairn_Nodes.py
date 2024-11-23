@@ -138,8 +138,8 @@ def RepeatPipe_IN(model: ModelTensor, pos: ConditioningTensor, neg: Conditioning
 
 
 @ComfyNode()
-def RepeatPipe_OUT(repeat_pipes: list[RepeatPipe]) -> RepeatPipe:
-    return [pipe for pipe in repeat_pipes if pipe is not None] 
+def RepeatPipe_OUT(repeat_pipes: list[RepeatPipe]) -> list[ImageTensor]:
+    return [pipe.image for pipe in repeat_pipes if pipe.image is not None] 
 
 
 
