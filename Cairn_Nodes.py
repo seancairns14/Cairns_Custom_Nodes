@@ -232,14 +232,14 @@ def repeat_ksample(repeat_pipes: list[RepeatPipe],
         logging.error("Invalid repeat_pipes: %s", type(repeat_pipes))
         raise ValueError(f"RepeatPipe must be provided. Instead {type(repeat_pipes)} was provided.")
     
-    logging.debug("Received %d repeat_pipes", len(repeat_pipes))
-    logging.debug("Seed: %d, Steps: %d, CFG: %.2f, Sampler: %s, Scheduler: %s, Denoise: %.2f",
+    logging.info("Received %d repeat_pipes", len(repeat_pipes))
+    logging.info("Seed: %d, Steps: %d, CFG: %.2f, Sampler: %s, Scheduler: %s, Denoise: %.2f",
                   seed, steps, cfg, sampler_name, scheduler_name, denoise)
     
     new_pipes = []
     
     for pipe_idx, pipe in enumerate(repeat_pipes):
-        logging.debug("Processing pipe %d: %s", pipe_idx, pipe)
+        logging.info("Processing pipe %d: %s", pipe_idx, pipe)
 
         # Extract attributes
         model = pipe.model
@@ -250,28 +250,28 @@ def repeat_ksample(repeat_pipes: list[RepeatPipe],
         clip = pipe.clip
         prompt = pipe.prompt 
         
-        logging.debug("Pipe %d - Model: %s, Latent: %s, Positive: %s, Negative: %s, Prompt: %s",
+        logging.info("Pipe %d - Model: %s, Latent: %s, Positive: %s, Negative: %s, Prompt: %s",
                       pipe_idx, model, latent_image, positive, negative, prompt)
 
         # Ensure defaults
         latent_image, positive, negative = ensure_defaults(model, latent_image, positive, negative, seed)
-        logging.debug("Pipe %d - Defaults ensured: Latent: %s, Positive: %s, Negative: %s",
+        logging.info("Pipe %d - Defaults ensured: Latent: %s, Positive: %s, Negative: %s",
                       pipe_idx, latent_image, positive, negative)
 
         # Extract and iterate prompts
         text_list = extract_prompt_list(text)
         prompt_list = extract_prompt_list(prompt)
-        logging.debug("Pipe %d - Extracted text_list: %s, prompt_list: %s", pipe_idx, text_list, prompt_list)
+        logging.info("Pipe %d - Extracted text_list: %s, prompt_list: %s", pipe_idx, text_list, prompt_list)
 
         for prompt_idx, p in enumerate(prompt_list):
             for text_idx, t in enumerate(text_list):
                 new_prompt = concat_prompt_lists(p, t)
-                logging.debug("Pipe %d - Prompt %d, Text %d: Concatenated Prompt: %s",
+                logging.info("Pipe %d - Prompt %d, Text %d: Concatenated Prompt: %s",
                               pipe_idx, prompt_idx, text_idx, new_prompt)
 
                 # Encode positive text
                 new_positive = text_encode(clip=clip, text=new_prompt)
-                logging.debug("Pipe %d - Encoded positive text for Prompt %d, Text %d: %s",
+                logging.info("Pipe %d - Encoded positive text for Prompt %d, Text %d: %s",
                               pipe_idx, prompt_idx, text_idx, new_positive)
 
                 # Generate latent tensor
@@ -281,7 +281,7 @@ def repeat_ksample(repeat_pipes: list[RepeatPipe],
                     positive=new_positive, negative=negative, latent=latent_image,
                     denoise=denoise
                 )
-                logging.debug("Pipe %d - Generated new latent tensor for Prompt %d, Text %d", 
+                logging.info("Pipe %d - Generated new latent tensor for Prompt %d, Text %d", 
                               pipe_idx, prompt_idx, text_idx)
 
                 # Create new pipe
@@ -294,7 +294,7 @@ def repeat_ksample(repeat_pipes: list[RepeatPipe],
                 new_pipe.clip = clip
                 new_pipe.prompt = new_prompt
                 new_pipe.image = decode(vae=new_pipe.vae, samples=new_latent)
-                logging.debug("Pipe %d - Created new RepeatPipe with decoded image for Prompt %d, Text %d",
+                logging.info("Pipe %d - Created new RepeatPipe with decoded image for Prompt %d, Text %d",
                               pipe_idx, prompt_idx, text_idx)
 
                 new_pipes.append(new_pipe)
