@@ -259,7 +259,9 @@ def repeat_ksample(repeat_pipes: list[RepeatPipe],
         # Extract and iterate prompts
         text_list = extract_prompt_list(text)
         prompt_list = extract_prompt_list(prompt)
+        
 
+        logging.info("text list %s, and prompt list: %s", text_list, prompt_list)
         for prompt_idx, p in enumerate(prompt_list):
             for text_idx, t in enumerate(text_list):
                 new_prompt = concat_prompt_lists(p, t)
