@@ -68,7 +68,7 @@ def common_ksampler(model, seed, steps, cfg, sampler_name, scheduler, positive, 
 
     out = latent.copy()
     out["samples"] = samples
-    return (out, )
+    return out
 
 def text_encode(clip, text):
         tokens = clip.tokenize(text)
