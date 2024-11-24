@@ -76,18 +76,39 @@ def text_encode(clip, text):
         cond = output.pop("cond")
         return ([[cond, output]], )
 
+def braces_to_list(input_str: str):
+    """
+    Extracts strings enclosed in curly braces from the input string,
+    removes trailing commas, and trims whitespace.
 
-def extract_prompt_list(input_str: str):
-    # Regular expression pattern to match the strings inside the brackets and quotes
-    pattern = r"'([^']*)'"
-    
-    # Use re.findall to extract all matches (each string inside the quotes)
-    prompts = re.findall(pattern, input_str)
-    
-    # Now, for each prompt, split by commas outside the quotes
-    result = [prompt.split(',') for prompt in prompts]
-    
-    return result
+    Args:
+        input_str (str): The input string, e.g., "{string}, {string}, {string}".
+
+    Returns:
+        list: A list of cleaned strings, e.g., ["word, this, word", "another, test, word"].
+    """
+    # Use regex to find all content inside curly braces
+    matches = re.findall(r"\{(.*?)\}", input_str)
+    # Process each match: strip whitespace, remove trailing commas
+    return [match.strip().rstrip(',') for match in matches if match.strip()]
+
+
+
+
+def string_to_list(input_str: str):
+    """
+    Converts a comma-separated string into a list of trimmed strings,
+    ensuring no spaces at the start or end of each string and no commas within strings.
+
+    Args:
+        input_str (str): The input string, e.g., "this, is, a, test".
+
+    Returns:
+        list: A list of strings, e.g., ['this', 'is', 'a', 'test'].
+    """
+    # Split the input string by commas, trim spaces, and remove commas within strings
+    return [item.strip().replace(',', '') for item in input_str.split(',') if item.strip()]
+
 
 def concat_prompt_lists(list1, list2):
     # Concatenate both lists
@@ -224,7 +245,7 @@ def repeat_ksample(repeat_pipes: list[RepeatPipe],
                    sampler_name: str = Choice(comfy.samplers.KSampler.SAMPLERS),
                    scheduler_name: str = Choice(comfy.samplers.KSampler.SCHEDULERS),   
                    denoise: float = NumberInput(1.0, 0.0, 1.0, step=0.01),
-                   text: str = StringInput("Example: ['This prompt, is, one prompt', 'This is, another']")) -> list[RepeatPipe]:
+                   text: str = StringInput("Example: {This prompt, is, one prompt}, {This is, another}")) -> list[RepeatPipe]:
     logging.info("Starting repeat_ksample function")
 
     # Check input validity
@@ -257,16 +278,17 @@ def repeat_ksample(repeat_pipes: list[RepeatPipe],
         latent_image, positive, negative = ensure_defaults(model, latent_image, positive, negative, seed)
 
         # Extract and iterate prompts
-        text_list = extract_prompt_list(text)
-        prompt_list = extract_prompt_list(prompt)
+        text_list = braces_to_list(text)
+        prompt_list = string_to_list(prompt)
         
 
         logging.info("text list %s, and prompt list: %s", text_list, prompt_list)
-        for prompt_idx, p in enumerate(prompt_list):
-            for text_idx, t in enumerate(text_list):
-                new_prompt = concat_prompt_lists(p, t)
-                logging.info("Pipe %d - Prompt %d, Text %d: Concatenated Prompt: %s",
-                              pipe_idx, prompt_idx, text_idx, new_prompt)
+        for text_idx, t in enumerate(text_list):
+                t_list = string_to_list(t)
+                new_prompt = concat_prompt_lists(prompt_list, t_list)
+                
+                logging.info("Pipe %d - Text %d: Concatenated Prompt: %s",
+                              pipe_idx, text_idx, new_prompt)
 
                 # Encode positive text
                 new_positive = text_encode(clip=clip, text=new_prompt)
@@ -278,8 +300,8 @@ def repeat_ksample(repeat_pipes: list[RepeatPipe],
                     positive=new_positive, negative=negative, latent=latent_image,
                     denoise=denoise
                 )
-                logging.info("Pipe %d - Generated new latent tensor for Prompt %d, Text %d", 
-                              pipe_idx, prompt_idx, text_idx)
+                logging.info("Pipe %d - Generated new latent tensor - Text %d", 
+                              pipe_idx, text_idx)
 
                 # Create new pipe
                 new_pipe = RepeatPipe()
@@ -291,8 +313,8 @@ def repeat_ksample(repeat_pipes: list[RepeatPipe],
                 new_pipe.clip = clip
                 new_pipe.prompt = new_prompt
                 new_pipe.image = decode(vae=new_pipe.vae, samples=new_latent)
-                logging.info("Pipe %d - Created new RepeatPipe with decoded image for Prompt %d, Text %d",
-                              pipe_idx, prompt_idx, text_idx)
+                logging.info("Pipe %d - Created new RepeatPipe with decoded image for Text %d",
+                              pipe_idx, text_idx)
 
                 new_pipes.append(new_pipe)
 
