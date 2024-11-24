@@ -225,7 +225,7 @@ def repeat_ksample(repeat_pipes: list[RepeatPipe],
                    scheduler_name: str = Choice(comfy.samplers.KSampler.SCHEDULERS),   
                    denoise: float = NumberInput(1.0, 0.0, 1.0, step=0.01),
                    text: str = StringInput("Example: ['This prompt, is, one prompt', 'This is, another']")) -> list[RepeatPipe]:
-    logging.debug("Starting repeat_ksample function")
+    logging.INFO("Starting repeat_ksample function")
 
     # Check input validity
     if repeat_pipes is None or len(repeat_pipes) == 0:
