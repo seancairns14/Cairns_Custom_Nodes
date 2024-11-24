@@ -246,6 +246,7 @@ def repeat_ksample(repeat_pipes: list[RepeatPipe],
                    scheduler_name: str = Choice(comfy.samplers.KSampler.SCHEDULERS),   
                    denoise: float = NumberInput(1.0, 0.0, 1.0, step=0.01),
                    text: str = StringInput("Example: {This prompt, is, one prompt}, {This is, another}")) -> list[RepeatPipe]:
+    
     logging.info("Starting repeat_ksample function")
 
     # Check input validity
@@ -271,8 +272,7 @@ def repeat_ksample(repeat_pipes: list[RepeatPipe],
         clip = pipe.clip
         prompt = pipe.prompt 
         
-        logging.info("Pipe %d - Model: %s, Prompt: %s",
-                      pipe_idx, model, prompt)
+        logging.info("Pipe %d - Model: %s, Prompt: %s", pipe_idx, model, prompt)
 
         # Ensure defaults
         latent_image, positive, negative = ensure_defaults(model, latent_image, positive, negative, seed)
@@ -280,43 +280,47 @@ def repeat_ksample(repeat_pipes: list[RepeatPipe],
         # Extract and iterate prompts
         text_list = braces_to_list(text)
         prompt_list = string_to_list(prompt)
-        
+
+        # Add checks to ensure these lists aren't empty
+        if not text_list:
+            logging.warning("Text list is empty: %s", text_list)
+            continue  # Skip this iteration if text_list is empty
+        if not prompt_list:
+            logging.warning("Prompt list is empty: %s", prompt_list)
+            continue  # Skip this iteration if prompt_list is empty
 
         logging.info("text list %s, and prompt list: %s", text_list, prompt_list)
         for text_idx, t in enumerate(text_list):
-                t_list = string_to_list(t)
-                new_prompt = concat_prompt_lists(prompt_list, t_list)
-                
-                logging.info("Pipe %d - Text %d: Concatenated Prompt: %s",
-                              pipe_idx, text_idx, new_prompt)
+            t_list = string_to_list(t)
+            new_prompt = concat_prompt_lists(prompt_list, t_list)
+            
+            logging.info("Pipe %d - Text %d: Concatenated Prompt: %s", pipe_idx, text_idx, new_prompt)
 
-                # Encode positive text
-                new_positive = text_encode(clip=clip, text=new_prompt)
+            # Encode positive text
+            new_positive = text_encode(clip=clip, text=new_prompt)
 
-                # Generate latent tensor
-                new_latent = common_ksampler(
-                    model=model, seed=seed, steps=steps, cfg=cfg,
-                    sampler_name=sampler_name, scheduler=scheduler_name,
-                    positive=new_positive, negative=negative, latent=latent_image,
-                    denoise=denoise
-                )
-                logging.info("Pipe %d - Generated new latent tensor - Text %d", 
-                              pipe_idx, text_idx)
+            # Generate latent tensor
+            new_latent = common_ksampler(
+                model=model, seed=seed, steps=steps, cfg=cfg,
+                sampler_name=sampler_name, scheduler=scheduler_name,
+                positive=new_positive, negative=negative, latent=latent_image,
+                denoise=denoise
+            )
+            logging.info("Pipe %d - Generated new latent tensor - Text %d", pipe_idx, text_idx)
 
-                # Create new pipe
-                new_pipe = RepeatPipe()
-                new_pipe.model = model
-                new_pipe.pos = new_positive
-                new_pipe.neg = negative
-                new_pipe.latent = new_latent
-                new_pipe.vae = vae
-                new_pipe.clip = clip
-                new_pipe.prompt = new_prompt
-                new_pipe.image = decode(vae=new_pipe.vae, samples=new_latent)
-                logging.info("Pipe %d - Created new RepeatPipe with decoded image for Text %d",
-                              pipe_idx, text_idx)
+            # Create new pipe
+            new_pipe = RepeatPipe()
+            new_pipe.model = model
+            new_pipe.pos = new_positive
+            new_pipe.neg = negative
+            new_pipe.latent = new_latent
+            new_pipe.vae = vae
+            new_pipe.clip = clip
+            new_pipe.prompt = new_prompt
+            new_pipe.image = decode(vae=new_pipe.vae, samples=new_latent)
+            logging.info("Pipe %d - Created new RepeatPipe with decoded image for Text %d", pipe_idx, text_idx)
 
-                new_pipes.append(new_pipe)
+            new_pipes.append(new_pipe)
 
     logging.info("Generated %d new pipes", len(new_pipes))
     return new_pipes
