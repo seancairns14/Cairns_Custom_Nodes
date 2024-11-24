@@ -146,17 +146,12 @@ easy_nodes.create_field_setter_node(RepeatPipe)
 @ComfyNode()
 def RepeatPipe_IN(model: ModelTensor, pos: ConditioningTensor, neg: ConditioningTensor, 
                   latent: LatentTensor, vae: comfy.sd.VAE, clip: AnyType, prompt: str, image: ImageTensor) -> list[RepeatPipe]:
-    logging.debug("Starting RepeatPipe_IN function")
+    logging.info("Starting RepeatPipe_IN function")
 
-    # Validate and log input arguments
-    logging.debug("Received inputs - Model: %s, Positive Conditioning: %s, Negative Conditioning: %s", 
-                  model, pos, neg)
-    logging.debug("Latent Tensor: %s, VAE: %s, Clip: %s", latent, vae, clip)
-    logging.debug("Prompt: %s, Image Tensor: %s", prompt, image)
 
     # Instantiate the RepeatPipe
     pipe = RepeatPipe()
-    logging.debug("Created new RepeatPipe instance")
+    logging.info("Created new RepeatPipe instance")
 
     # Set the attributes based on the input arguments
     pipe.model = model
@@ -168,12 +163,9 @@ def RepeatPipe_IN(model: ModelTensor, pos: ConditioningTensor, neg: Conditioning
     pipe.prompt = prompt
     pipe.image = image
 
-    logging.debug("Set attributes for RepeatPipe - Model: %s, Pos: %s, Neg: %s, Latent: %s, VAE: %s, Clip: %s, Prompt: %s, Image: %s", 
-                  pipe.model, pipe.pos, pipe.neg, pipe.latent, pipe.vae, pipe.clip, pipe.prompt, pipe.image)
-
     # Wrap the pipe in a list
     pipe = [pipe]
-    logging.debug("Wrapped RepeatPipe instance in a list")
+    logging.info("Wrapped RepeatPipe instance in a list")
 
     # Validate the output
     if not isinstance(pipe, list):
@@ -184,13 +176,9 @@ def RepeatPipe_IN(model: ModelTensor, pos: ConditioningTensor, neg: Conditioning
         logging.error("Not all elements in the list are RepeatPipe objects. Element types: %s", item_types)
         raise ValueError(f"RepeatPipe must be a list of RepeatPipe objects. Instead, got a list with elements of type {item_types}.")
 
-    logging.debug("Validated output: List of RepeatPipe objects")
+    logging.info("Validated output: List of RepeatPipe objects")
     logging.info("Successfully created and returned a list of RepeatPipe objects with %d item(s)", len(pipe))
     
-    return pipe  # Return the pipeline object
-    
-
-
     return pipe  # Return the pipeline object
 
 
@@ -283,10 +271,10 @@ def repeat_ksample(repeat_pipes: list[RepeatPipe],
 
         # Add checks to ensure these lists aren't empty
         if not text_list:
-            logging.warning("Text list is empty: %s", text_list)
+            logging.info("Text list is empty: %s", text_list)
             continue  # Skip this iteration if text_list is empty
         if not prompt_list:
-            logging.warning("Prompt list is empty: %s", prompt_list)
+            logging.info("Prompt list is empty: %s", prompt_list)
             continue  # Skip this iteration if prompt_list is empty
 
         logging.info("text list %s, and prompt list: %s", text_list, prompt_list)
