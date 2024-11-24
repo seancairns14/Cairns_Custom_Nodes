@@ -250,18 +250,15 @@ def repeat_ksample(repeat_pipes: list[RepeatPipe],
         clip = pipe.clip
         prompt = pipe.prompt 
         
-        logging.info("Pipe %d - Model: %s, Latent: %s, Positive: %s, Negative: %s, Prompt: %s",
-                      pipe_idx, model, latent_image, positive, negative, prompt)
+        logging.info("Pipe %d - Model: %s, Prompt: %s",
+                      pipe_idx, model, prompt)
 
         # Ensure defaults
         latent_image, positive, negative = ensure_defaults(model, latent_image, positive, negative, seed)
-        logging.info("Pipe %d - Defaults ensured: Latent: %s, Positive: %s, Negative: %s",
-                      pipe_idx, latent_image, positive, negative)
 
         # Extract and iterate prompts
         text_list = extract_prompt_list(text)
         prompt_list = extract_prompt_list(prompt)
-        logging.info("Pipe %d - Extracted text_list: %s, prompt_list: %s", pipe_idx, text_list, prompt_list)
 
         for prompt_idx, p in enumerate(prompt_list):
             for text_idx, t in enumerate(text_list):
@@ -271,8 +268,6 @@ def repeat_ksample(repeat_pipes: list[RepeatPipe],
 
                 # Encode positive text
                 new_positive = text_encode(clip=clip, text=new_prompt)
-                logging.info("Pipe %d - Encoded positive text for Prompt %d, Text %d: %s",
-                              pipe_idx, prompt_idx, text_idx, new_positive)
 
                 # Generate latent tensor
                 new_latent = common_ksampler(
